@@ -103,4 +103,3 @@ for r in rows:
 conn.close()
 
 print("Database initialized and QR codes generated using Vercel URL!")
-
