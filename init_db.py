@@ -1,39 +1,22 @@
 import sqlite3
 import os
 import qrcode
-import socket
 
-# -----------------------
-# AUTO-DETECT LOCAL IP
-# -----------------------
-def get_local_ip():
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))  # No internet required, only routing
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
-    except:
-        return "127.0.0.1"
+DB = "herdsos.db"
 
-local_ip = get_local_ip()
-print("Auto-detected IP:", local_ip)
-
-# -----------------------
-# DATABASE RESET
-# -----------------------
-DB = 'herdsos.db'
-
+# -----------------------------
+# 1. Remove old database
+# -----------------------------
 if os.path.exists(DB):
-    print('Removing old DB...')
+    print("Removing old DB...")
     os.remove(DB)
 
 conn = sqlite3.connect(DB)
 c = conn.cursor()
 
-# -----------------------
-# CREATE TABLES
-# -----------------------
+# -----------------------------
+# 2. Create tables
+# -----------------------------
 c.execute('''
 CREATE TABLE hospitals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,9 +51,9 @@ CREATE TABLE reports (
 )
 ''')
 
-# -----------------------
-# INSERT HOSPITALS
-# -----------------------
+# -----------------------------
+# 3. Seed hospitals
+# -----------------------------
 hospitals = [
     ('Bengaluru Vet Clinic','+91-80-1111-0001', 12.9716, 77.5946, 'Main Street, Bengaluru'),
     ('Whitefield Animal Care','+91-80-1111-0002', 12.9719, 77.7499, 'Whitefield'),
@@ -82,9 +65,9 @@ hospitals = [
 for h in hospitals:
     c.execute('INSERT INTO hospitals (name, phone, lat, lon, address) VALUES (?, ?, ?, ?, ?)', h)
 
-# -----------------------
-# INSERT COWS
-# -----------------------
+# -----------------------------
+# 4. Seed cows
+# -----------------------------
 cows = [
     ('COW-1001', 'Brown cow with ear tag A1'),
     ('COW-1002', 'Grey cow near market'),
@@ -98,27 +81,26 @@ for cow in cows:
 conn.commit()
 conn.close()
 
-# -----------------------
-# GENERATE QR CODES
-# -----------------------
-os.makedirs('qrcodes', exist_ok=True)
+# -----------------------------
+# 5. Generate QR codes using VERCEL URL ONLY
+# -----------------------------
+VERCEL_BASE = "https://herdsosl.vercel.app/report/{}"
+print("Using Vercel URL for QR:", VERCEL_BASE)
+
+os.makedirs("qrcodes", exist_ok=True)
 
 conn = sqlite3.connect(DB)
 cur = conn.cursor()
-cur.execute('SELECT id FROM cows')
+cur.execute("SELECT id FROM cows")
 rows = cur.fetchall()
-
-# Auto-created base URL using detected IP
-base = base = 'https://herdsosl.vercel.app/report/{}'
-
-
-print("Using base URL for QR codes:", base)
 
 for r in rows:
     cowid = r[0]
-    url = base.format(cowid)
+    url = VERCEL_BASE.format(cowid)
     img = qrcode.make(url)
-    img.save(os.path.join('qrcodes', f'cow_{cowid}.png'))
+    img.save(os.path.join("qrcodes", f"cow_{cowid}.png"))
 
-print('Database initialized and QR codes generated in qrcodes/')
 conn.close()
+
+print("Database initialized and QR codes generated using Vercel URL!")
+
