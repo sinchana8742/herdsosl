@@ -109,7 +109,8 @@ cur.execute('SELECT id FROM cows')
 rows = cur.fetchall()
 
 # Auto-created base URL using detected IP
-base = f'http://{local_ip}:5000/report/{{}}'
+base = base = 'https://herdsosl.vercel.app/report/{}'
+
 
 print("Using base URL for QR codes:", base)
 
