@@ -14,7 +14,11 @@ if os.path.exists(DB):
 conn = sqlite3.connect(DB)
 c = conn.cursor()
 
+<<<<<<< HEAD
 # -----------------------------
+=======
+# ----------------------------
+>>>>>>> 174f795d400f0977732f0bc904f5351fa0290d13
 # 2. Create tables
 # -----------------------------
 c.execute('''
