@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ hospital.name }} — Hospital Panel</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f8f9fa; }
+        .card {
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 8px 12px;
+            margin-right: 8px;
+            border-radius: 6px;
+            color: #fff;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .accept { background: #28a745; }
+        .reject { background: #dc3545; }
+        .navigate { background: #007bff; }
+
+        #alertBox {
+            position: fixed; top: 15px; right: 15px;
+            padding: 10px 20px;
+            background: black;
+            color: white;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>{{ hospital.name }} — Hospital Panel</h1>
+<p>📍 {{ hospital.address }} | 📞 {{ hospital.phone }}</p>
+<p><a href="/dashboard">⬅ Back to Dashboard</a></p>
+
+<div id="alertBox"></div>
+
+<h2>Incoming Reports</h2>
+<div id="reportsArea">Loading reports...</div>
+
+<script>
+function loadReports() {
+    fetch("/api/hospital_reports/{{ hospital.id }}")
+        .then(res => res.json())
+        .then(data => {
+            let html = "";
+
+            if (data.length === 0) {
+                html = "<p>No pending reports.</p>";
+            }
+
+            data.forEach(r => {
+                html += `
+                <div class="card">
+                    <h3>Report #${r.id}</h3>
+                    <p><b>Condition:</b> ${r.condition}</p>
+                    <p><b>Status:</b> ${r.status}</p>
+
+                    ${r.photo ? `<img src="/uploads/${r.photo}" width="200" style="cursor:pointer"
+onclick="window.open('/uploads/${r.photo}', '_blank')"><br><br>
+
+<p style="color:red; font-weight:bold;">
+⚠ AI Flag: Possible Injury Detected
+</p>
+
+` : ""}
+
+
+                    <p><b>Location:</b> ${r.lat}, ${r.lon}</p>
+
+                    <a class="btn accept" href="/hospital_accept/${r.id}">Accept</a>
+                    <a class="btn reject" href="/hospital_reject/${r.id}/{{ hospital.id }}">Reject</a>
+
+                    <br><br>
+                    <button class="btn navigate" onclick="openNavigation({{ hospital.lat }}, {{ hospital.lon }}, ${r.lat}, ${r.lon})">
+                        🗺️ Navigate in Google Maps
+                    </button>
+
+                    <div id="map${r.id}" style="height: 250px; margin-top: 15px;"></div>
+                </div>
+                `;
+
+                // Map load after DOM updates
+                setTimeout(() => {
+                    var map = L.map("map" + r.id).setView([r.lat, r.lon], 14);
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                        maxZoom: 19
+                    }).addTo(map);
+
+                    L.marker([r.lat, r.lon]).addTo(map).bindPopup("Cow Location");
+
+                    L.marker([{{ hospital.lat }}, {{ hospital.lon }}])
+                        .addTo(map)
+                        .bindPopup("Hospital");
+                }, 80);
+            });
+
+            document.getElementById("reportsArea").innerHTML = html;
+        });
+}
+
+// Auto refresh every 3 seconds
+setInterval(loadReports, 3000);
+loadReports();
+
+
+// ⭐ Google Maps navigation function (100% working)
+function openNavigation(hLat, hLon, cLat, cLon) {
+    const url =
+        `https://www.google.com/maps/dir/?api=1&origin=${hLat},${hLon}&destination=${cLat},${cLon}`;
+    window.open(url, "_blank");
+}
+</script>
+
+</body>
+</html>

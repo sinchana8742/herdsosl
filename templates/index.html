@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>HerdSOS - Home</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<h1>🐄 HerdSOS - Demo Dashboard</h1>
+<p style="font-size: 17px; color: #444;">
+    Scan the QR code attached to any cow, or open a cow report page manually below.
+</p>
+
+<!-- Cow List -->
+<div class="hospital-card">
+    <h2>Available Cows</h2>
+    <p>(These have QR codes generated in the <b>qrcodes/</b> folder)</p>
+
+    <ul style="list-style: none; padding: 0;">
+        {% for c in cows %}
+        <li style="margin-bottom: 12px;">
+            <div style="background: #fff; padding: 12px; border-radius: 10px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.06);">
+                <span style="font-weight: 600;">{{ c.code }}</span>
+                <a href="/report/{{ c.id }}" style="
+                    margin-left: 10px;
+                    background: #1e90ff;
+                    color: white;
+                    padding: 6px 10px;
+                    border-radius: 6px;
+                    font-size: 14px;
+                ">Open report page</a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Dashboard Link -->
+<div class="hospital-card" style="margin-top: 20px;">
+    <h2>System Dashboard</h2>
+    <p>View all reports, hospital list, and live map.</p>
+
+    <a href="/dashboard" style="
+        background: #2ecc71;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 16px;
+        text-decoration: none;
+        font-weight: 600;
+    ">Open Dashboard</a>
+</div>
+
+</body>
+</html>
+

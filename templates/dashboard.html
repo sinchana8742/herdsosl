@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>HerdSOS Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </head>
+
+  <body>
+    <h1>HerdSOS - Dashboard</h1>
+    <p><a href="/">Home</a></p>
+
+    <!-- ALL REPORTS -->
+    <h2>All Reports</h2>
+    <table border="1" cellpadding="6">
+      <tr>
+        <th>ID</th>
+        <th>Cow</th>
+        <th>Condition</th>
+        <th>Location</th>
+        <th>Status</th>
+        <th>Assigned Hospital</th>
+      </tr>
+
+      {% for r in reports %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.cow_code }}</td>
+        <td>{{ r.condition }}</td>
+
+        <td>
+          {% if r.lat %}
+            {{ r.lat }}, {{ r.lon }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+
+        <td>{{ r.status }}</td>
+
+        <td>
+          {% if r.hospital_name %}
+            {{ r.hospital_name }}
+          {% else %}
+            <b style="color:red">Not Assigned</b>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+
+
+    <!-- ALL HOSPITALS -->
+    <h2>All Registered Hospitals</h2>
+    <table border="1" cellpadding="6">
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Address</th>
+        <th>Location (lat, lon)</th>
+      </tr>
+
+      {% for h in hospitals %}
+      <tr>
+        <td>{{ h.id }}</td>
+        <td>{{ h.name }}</td>
+        <td>{{ h.phone }}</td>
+        <td>{{ h.address }}</td>
+        <td>{{ h.lat }}, {{ h.lon }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+
+    <!-- MAP -->
+    <h2>Map View</h2>
+    <div id="map" style="height:500px"></div>
+
+    <script>
+      var map = L.map('map').setView([12.97, 77.59], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
+
+      var hospitals = {{ hospitals|tojson|safe }};
+      var reports = {{ reports|tojson|safe }};
+
+      hospitals.forEach(function(h){
+        L.marker([h.lat, h.lon]).addTo(map).bindPopup("<b>" + h.name + "</b>");
+      });
+
+      reports.forEach(function(r){
+        if (r.lat && r.lon) {
+          L.circleMarker([r.lat, r.lon], {radius: 6}).addTo(map)
+            .bindPopup("Report #" + r.id + "<br>Status: " + r.status);
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Report - {{ cow.code }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <h2>Report for {{ cow.code }}</h2>
+    <p>{{ cow.description }}</p>
+    <form id="reportForm" action="/submit_report" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="cow_id" value="{{ cow.id }}">
+      <label>Condition (short):<br><input type="text" name="condition" required></label><br><br>
+      <label>Optional photo: <input type="file" name="photo" accept="image/*"></label><br><br>
+      <input type="hidden" name="lat" id="lat">
+      <input type="hidden" name="lon" id="lon">
+      <button type="submit">Submit report</button>
+    </form>
+    <p id="locstatus">Trying to obtain your location... (Allow browser location)</p>
+    <script>
+      // Try to get location and populate form fields
+      const status = document.getElementById('locstatus');
+      function success(pos) {
+        const crd = pos.coords;
+        document.getElementById('lat').value = crd.latitude;
+        document.getElementById('lon').value = crd.longitude;
+        status.innerText = 'Location captured: ' + crd.latitude.toFixed(5) + ', ' + crd.longitude.toFixed(5);
+      }
+      function error(err) {
+        status.innerText = 'Could not get your location. For demo, you can still submit by entering location manually in the form by editing the fields in developer tools.';
+      }
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error, {timeout:10000});
+      } else {
+        status.innerText = 'Geolocation not supported by your browser.';
+      }
+    </script>
+  </body>
+</html>
